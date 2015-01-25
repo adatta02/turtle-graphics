@@ -8,10 +8,9 @@ import java.awt.event.{ActionEvent, ActionListener}
 import java.nio.file._
 import scala.collection.JavaConversions._
 import scala.sys.process._
+import java.io.File
 
-object LogoParser extends SimpleSwingApplication {
-  
-  object TurtleShape extends java.awt.geom.Path2D.Double {    
+object TurtleShape extends java.awt.geom.Path2D.Double {    
     moveTo(0, 0)
     
     lineTo(20, 0)
@@ -19,37 +18,87 @@ object LogoParser extends SimpleSwingApplication {
     lineTo(0, 20)
     
     closePath()        
-  }  
+}
+
+class FileWatcher(targetFilePath: String, onFileWatcher: LogoParser.OnFileWatcher) extends Runnable {	
     
+	def run:Unit = {
+	  
+	  val targetFile = new File(targetFilePath)
+	  val watcher = FileSystems.getDefault.newWatchService
+	  val file = Paths.get(targetFile.getParentFile().getAbsolutePath() + "/")	  
+	  
+	  file.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY)
+	  	  
+	  val key = watcher.take
+	  val events = key.pollEvents
+	  val e = events.toList	  
+	  			    .map(a => a.context().asInstanceOf[Path].toAbsolutePath.endsWith(targetFile.getName()))
+  			    	.exists(_ == true)
+
+	  onFileWatcher(e)
+	}
+	
+} 
+
+object LogoParser extends SimpleSwingApplication {
+  
+  type OnFileWatcher = (Boolean) => Unit
+  
+  var parsedTurtles:List[Turtle] = List.empty[Turtle]
+  var inputFile:String = "/home/ashish/Downloads/logo_test.txt"
+    
+  override def main(args: Array[String]) = {
+    
+    inputFile = args(0)
+    
+    parseInput
+    super.main(args)
+    
+    val watcher = new FileWatcher(inputFile, this.onFileWatcher) 
+    (new Thread(watcher)).start
+  
+  }
+  
+  def parseInput: Unit = {
+    val input = scala.io.Source.fromFile(inputFile).mkString
+    this.parsedTurtles = parseInput(input)
+  }
+  
+  def onFileWatcher(didFileChange: Boolean): Unit = {
+        
+    if(didFileChange){
+      parseInput
+      ui.reset
+    }
+    
+    val watcher = new FileWatcher(inputFile, this.onFileWatcher) 
+    (new Thread(watcher)).start    
+  }
+  
+  def parseInput(input:String): List[Turtle] = {
+    val turtleActions = TurtleScriptParser.parseAll(TurtleScriptParser.parseTurtleExpressions, input)        
+    turtleActions.get.foldLeft( List[Turtle](Turtle()) )((list, turtleExpression) => {      
+      list ::: turtleExpression.updateTurtle(list.last)
+    })    
+  }
+  
   lazy val ui = new Panel with ActionListener {
     
     background = Color.white
     preferredSize = (800, 600)
     focusable = true
-    
-    val input = """
-      setpos 100 200
-      pendown
-      up 100 right 100 down 100 left 100 penup
-      """
-    val turtleActions = TurtleScriptParser.parseAll(TurtleScriptParser.parseTurtleExpressions, input)
-    
-    println(turtleActions)    
-    if(turtleActions.isEmpty){
-      throw new Exception("Could not parse input")
-    }    
-        
-    val parsedTurtles = turtleActions.get.foldLeft( List[Turtle](Turtle()) )((list, turtleExpression) => {      
-      list ::: turtleExpression.updateTurtle(list.last)
-    })        
-    
-    println(parsedTurtles)
-    
     var actionIndex = 1
+
+    def reset: Unit = {
+      actionIndex = 1
+      repaint
+    }
+        
     def actionPerformed(e: ActionEvent) {
       actionIndex += 1      
       if( actionIndex <= parsedTurtles.size ){
-    	  repaint()
+    	  repaint
       }
     }
         
@@ -89,32 +138,4 @@ object LogoParser extends SimpleSwingApplication {
   val timer = new Timer(500, ui)
   timer.start()
   
-  def startWatcher: Unit = {
-    
-	  val fileWatcher = new Thread(new Runnable {
-	    def run(){
-	      
-	      val watcher = FileSystems.getDefault.newWatchService
-	      val file = Paths.get("/home/ashish/Downloads/")
-	      
-	      file.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY)
-	      
-	      val key = watcher.take
-	      val events = key.pollEvents
-	      
-	      val e = events.toList
-	      				.map(a => a.context().asInstanceOf[Path].toAbsolutePath.endsWith("logo_test.txt"))
-	      				.exists(_ == true)
-	      println(e)
-	      
-	      startWatcher
-	      // events.isEmpty
-	      // key.reset
-	    }
-	  })
-	  
-	  fileWatcher.start
-  }
-  
-  startWatcher
 }
