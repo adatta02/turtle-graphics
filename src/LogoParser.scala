@@ -49,14 +49,18 @@ object LogoParser extends SimpleSwingApplication {
   var inputFile:String = "/home/ashish/Downloads/logo_test.txt"
     
   override def main(args: Array[String]) = {
-    
-    inputFile = args(0)
-    
-    parseInput
-    super.main(args)
-    
-    val watcher = new FileWatcher(inputFile, this.onFileWatcher) 
-    (new Thread(watcher)).start
+
+    if( args.length == 1 ){
+	    inputFile = args(0)
+	    
+	    parseInput
+	    super.main(args)
+	    
+	    val watcher = new FileWatcher(inputFile, this.onFileWatcher) 
+	    (new Thread(watcher)).start
+    }else{
+      println("Sorry! You need to specificy one argument which is a path to an input file.")
+    }
   
   }
   
