@@ -99,8 +99,8 @@ object TurtleScriptParser extends RegexParsers {
   }  
   
   def number: Parser[InfixElement] = { 
-    """-?(\.?\d+)|(xPos)|(yPos)""".r ^^ ( new Operand(_) )
-  }
+    """-?(\d+(\.\d*)?|\d*\.\d+)|(xPos)|(yPos)""".r ^^ ( new Operand(_) )
+  }  
   
   def plusMin: Parser[ List[InfixElement] ] = {
     (literal("+") | literal("-")) ~ term ^^ (f => {      

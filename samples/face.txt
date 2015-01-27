@@ -1,0 +1,14 @@
+setpos 200 200
+pendown
+up 100 right 100 down 100 left 100 penup
+setpos 400 200
+pendown
+up 100 right 100 down 100 left 100 penup
+setpos 340 225
+pendown
+down 125 right 20 up 125 left 20 penup
+setpos 200 375
+pendown
+repeat 9 [down 10 right 15]
+repeat 2 [right 15]
+repeat 9 [up 10 right 15]

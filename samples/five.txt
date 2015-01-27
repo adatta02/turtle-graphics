@@ -1,0 +1,9 @@
+setpos 200 100
+pendown
+right 300 penup
+setpos 200 100
+pendown down 150
+right 300 
+pendown
+down 150
+left 300

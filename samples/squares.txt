@@ -1,0 +1,15 @@
+setpos 200 100
+repeat 8 [pendown right 20 penup right 30]
+repeat 8 [pendown down 20 penup down 30]
+repeat 8 [pendown left 20 penup left 30]
+repeat 8 [pendown up 20 penup up 30]
+setpos 250 150
+repeat 6 [pendown right 20 penup right 30]
+repeat 6 [pendown down 20 penup down 30]
+repeat 6 [pendown left 20 penup left 30]
+repeat 6 [pendown up 20 penup up 30]
+setpos 300 200
+repeat 4 [pendown right 20 penup right 30]
+repeat 4 [pendown down 20 penup down 30]
+repeat 4 [pendown left 20 penup left 30]
+repeat 4 [pendown up 20 penup up 30]

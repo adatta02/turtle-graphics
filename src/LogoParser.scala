@@ -78,9 +78,17 @@ object LogoParser extends SimpleSwingApplication {
   
   def parseInput(input:String): List[Turtle] = {
     val turtleActions = TurtleScriptParser.parseAll(TurtleScriptParser.parseTurtleExpressions, input)        
-    turtleActions.get.foldLeft( List[Turtle](Turtle()) )((list, turtleExpression) => {      
+    val parsedTurtles = if( turtleActions.successful ) {
+      turtleActions.get.foldLeft( List[Turtle](Turtle()) )((list, turtleExpression) => {    
       list ::: turtleExpression.updateTurtle(list.last)
-    })    
+    })
+    }else{
+      println("Sorry! Could not parse input")
+      List.empty[Turtle]
+    }
+    
+    println(parsedTurtles)    
+    parsedTurtles
   }
   
   lazy val ui = new Panel with ActionListener {
@@ -114,17 +122,17 @@ object LogoParser extends SimpleSwingApplication {
         }
                        
         (p._1, p._2 :+ turtle)
-      })
-      
-      println(currentTurtles)
+      })            
       
       g.setColor(Color.BLACK)
       g.draw(pathTurtles._1)            
       
-      g.setColor(Color.BLUE)
-      g.translate(currentTurtles.last.position._1, currentTurtles.last.position._2)
-      g.fill(TurtleShape)
-            
+      if(currentTurtles.length > 0){
+	      g.setColor(Color.BLUE)            
+	      g.translate(currentTurtles.last.position._1, currentTurtles.last.position._2)
+	      g.fill(TurtleShape)
+      }
+      
       g.dispose()      
     }
     
@@ -135,7 +143,7 @@ object LogoParser extends SimpleSwingApplication {
     contents = ui      
   }
   
-  val timer = new Timer(500, ui)
+  val timer = new Timer(200, ui)
   timer.start()
   
 }
